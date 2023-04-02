@@ -6,7 +6,7 @@ window_size: 100
 weighted_loss: False # Boolean
 val_size: 0.2 # Float: Size of validation in train/val split
 shuffle_split: True # Boolean: whether to shuffle samples. NOT FOR TIMESERIES
-model_type: 'mlp'
+model_type: 'resnet'
 normalize:
   run: True # Boolean: bypasses method
   method: standard # String: minmax, standard, or mean

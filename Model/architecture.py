@@ -1,5 +1,7 @@
 from torch import nn
 import torch
+import torchvision
+
 from helpers.AudioSampler import AudioSampler
 
 class MLPModel(nn.Module):
@@ -14,6 +16,19 @@ class MLPModel(nn.Module):
         x = self.relu(self.input(x))
         x = self.hidden_layer(x)
         return self.output(x)
+    
+class ResNetModel(nn.Module):
+    def __init__(self, hyperparams:dict):
+        super(ResNetModel, self).__init__()
+        self.input = nn.Linear(1000, 512)
+        self.relu = nn.ReLU() # Activation function
+        self.hidden_layer = nn.Linear(512, hyperparams['num_classes'])
+        self.output = nn.Sigmoid()
+        self.rn = torchvision.models.resnet18(weights=torchvision.models.ResNet18_Weights.DEFAULT)
+        
+    def forward(self, x):
+        x = self.relu(self.input(self.rn(x)))
+        return self.output(self.hidden_layer(x))
 
 class GunshotDataset(torch.utils.data.Dataset):
     sampler = AudioSampler()

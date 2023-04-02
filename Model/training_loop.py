@@ -3,14 +3,13 @@ import joblib
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
-import torchvision
 from torchsummary import summary
 import torch
 from torch.utils.data import DataLoader
 
 from helpers.eval import accuracy, plot_loss
 from helpers.preprocessing import get_model_params
-from architecture import GunshotDataset, MLPModel
+from architecture import GunshotDataset, MLPModel,ResNetModel
 from helpers.preprocessing import cross_entropy_weights, get_distribution, normalize_data
 
 if __name__ == '__main__':
@@ -18,19 +17,17 @@ if __name__ == '__main__':
 
     train = True #set to train and save, or load and eval
     reload = False
-    model_type = 'mlp'
 
     if train == True:
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         if reload == True:
-            model = joblib.load(model_type+'.joblib') 
+            model = joblib.load(hyperparams['model_type']+'.joblib') 
         else:
-            if model_type =='mlp':
+            if hyperparams['model_type'] =='mlp':
                 model = MLPModel(hyperparams).to(device)
-            elif model_type == 'resnet':
-                model = torchvision.models.resnet18(weights=torchvision.models.ResNet18_Weights.DEFAULT)
-        
+            elif hyperparams['model_type'] == 'resnet':
+                model = ResNetModel(hyperparams).to(device)
         #summary(model,(32,100))
         
         optimizer = torch.optim.Adam(model.parameters(), lr=hyperparams['learning_rate'])
@@ -41,8 +38,8 @@ if __name__ == '__main__':
         val_acc = None
         train_acc = None
     
-        train_generator = DataLoader(GunshotDataset(hyperparams,80),hyperparams['batch_size'])
-        val_generator = DataLoader(GunshotDataset(hyperparams,20),hyperparams['batch_size'])
+        train_generator = DataLoader(GunshotDataset(hyperparams,8),hyperparams['batch_size'])
+        val_generator = DataLoader(GunshotDataset(hyperparams,2),hyperparams['batch_size'])
         for epoch in range(1, hyperparams['epochs'] + 1):
             print(f'Epoch {epoch}')
             
