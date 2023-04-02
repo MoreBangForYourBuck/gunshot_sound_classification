@@ -87,7 +87,7 @@ def get_imu_data():
     return imu,ann
 
 def get_model_params():
-    with open('MLP/mlp_hyperparams.yaml', 'r') as f:
+    with open('Model/mlp_hyperparams.yaml', 'r') as f:
         hyperparams = yaml.safe_load(f)
     return hyperparams
     

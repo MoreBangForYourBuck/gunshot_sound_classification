@@ -54,15 +54,21 @@ class AudioSampler:
             'arr': np.array(audio.get_array_of_samples()),
             'fr': audio.frame_rate
         }
-        
     @staticmethod
-    def spectrogram(arr:np.ndarray, frame_rate:int) -> Figure:
+    def spectrogram(arr:np.ndarray, frame_rate:int):
         '''
-        Plots a spectrogram of numpy array audio data using matplotlib.
+        Returns a spectrogram of numpy array audio data.
         '''
         f, t, Sxx = scipy.signal.spectrogram(arr, fs=frame_rate)
         Sxx = 10 * np.log10(Sxx + 1e-9)
-        
+        return f,t,Sxx
+    
+    @staticmethod
+    def plot_spectrogram(arr:np.ndarray, frame_rate:int) -> Figure:
+        '''
+        Plots a spectrogram of numpy array audio data using matplotlib.
+        '''
+        f, t, Sxx = AudioSampler.spectrogram(arr, frame_rate)
         fig = plt.figure()
         plt.pcolormesh(t, f, Sxx)
         plt.ylabel('Frequency [Hz]')
@@ -94,7 +100,7 @@ class AudioSampler:
             yield AudioSampler.pydub_data(audio['audio'])['arr'], audio['y']
             value += 1
             
-    def sample_array(self, n:int, window_size:int, convert_to_mono:bool) -> Dict[str, Union[np.ndarray, int, dict]]:
+    def sample_array(self, n:int, window_size:int, convert_to_mono:bool,output_spectrogram=False) -> Dict[str, Union[np.ndarray, int, dict]]:
         '''
         Returns a numpy array of audio samples.
         '''
@@ -137,8 +143,10 @@ class AudioSampler:
                 'volume_db': audio['volume']
             }
             
-            clip = AudioSampler.pydub_data(audio['audio'])['arr']
+            clip_data = AudioSampler.pydub_data(audio['audio'])
+            clip = clip_data['arr']
             labels = audio['y']
+            frame_rate = clip_data['fr']
 
             for i in range(len(clip)):
                 try:
@@ -148,8 +156,19 @@ class AudioSampler:
                         X.append(clip[i:i+window_size])
                 except:
                     pass
-            
-        return np.array(X,dtype=np.float32), np.array(y,dtype=np.float32)
+        
+        X = np.array(X,dtype=np.float32)
+        y = np.array(y,dtype=np.float32)
+        if output_spectrogram:
+            #output the windows as spectrograms
+            temp = []
+            for windowed_sound_clip in X:
+                f, t, Sxx = AudioSampler.spectrogram(windowed_sound_clip, frame_rate)
+                temp.append(Sxx)
+            return temp,y
+        else:
+            return X,y
+    
 
 
 
